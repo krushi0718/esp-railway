@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container text-center">
+    <div class="card shadow-lg mx-auto" style="max-width: 450px; border-top: 8px solid var(--irctc-orange);">
+        <div class="card-body p-4">
+            <h4 class="text-irctc mb-1">E-TICKET / RESERVATION</h4>
+            <p class="text-muted small">VALID FOR COACH B1 ONLY</p>
+            <hr>
+            <div class="row text-start mb-4">
+                <div class="col-6">
+                    <label class="text-muted x-small d-block">PASSENGER</label>
+                    <strong>{{ passenger.name }}</strong>
+                </div>
+                <div class="col-6 text-end">
+                    <label class="text-muted x-small d-block">SEAT NUMBER</label>
+                    <strong class="fs-4">{{ seat_id }}</strong>
+                </div>
+            </div>
+
+            <div class="bg-light p-3 rounded mb-4">
+                <img src="{{ url_for('static', filename='qrs/' + seat_id + '.png') }}" class="img-fluid" style="width: 200px;">
+                <p class="mt-2 mb-0 small text-muted">Scan at Gate Camera</p>
+            </div>
+
+            <div class="alert alert-warning py-2 small">
+                Please hold your phone 20cm from the lens.
+            </div>
+            
+            <a href="/" class="btn btn-outline-secondary btn-sm">Book Another</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: railway-smart-coach
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: ESP32_STREAM_URL
+        value: http://YOUR_ESP32_PUBLIC_OR_LOCAL_IP/stream
+      - key: DB_PATH
+        value: /var/data/railway.db
+    disks:
+      - name: railway-data
+        mountPath: /var/data
+        sizeGB: 1

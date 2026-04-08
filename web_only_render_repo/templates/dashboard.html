@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="text-irctc mb-1">TTE Admin Dashboard</h3>
+        <p class="text-muted mb-0">Live coach management and surveillance controls</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-success" href="/tte/export.csv?status={{ status_filter }}">Export CSV</a>
+        <a class="btn btn-outline-dark" href="/">Back to Booking Portal</a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" action="/tte/dashboard" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold">FILTER SEAT STATUS</label>
+                <select class="form-select" name="status">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="booked" {% if status_filter == 'booked' %}selected{% endif %}>Booked</option>
+                    <option value="onboard" {% if status_filter == 'onboard' %}selected{% endif %}>Onboard</option>
+                    <option value="not_boarded" {% if status_filter == 'not_boarded' %}selected{% endif %}>Booked But Not Boarded</option>
+                    <option value="available" {% if status_filter == 'available' %}selected{% endif %}>Available</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-irctc w-100">Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted small">Total Seats</div>
+                <div class="fs-3 fw-bold">{{ total }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted small">Booked</div>
+                <div class="fs-3 fw-bold text-primary">{{ booked }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted small">Onboard</div>
+                <div class="fs-3 fw-bold text-success">{{ onboard }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="text-muted small">Available</div>
+                <div class="fs-3 fw-bold text-warning">{{ available }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white"><strong>Coach Seat Registry</strong></div>
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 520px;">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Seat</th>
+                                <th>Passenger</th>
+                                <th>Owner</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for seat_id, seat in seat_rows %}
+                            <tr>
+                                <td><span class="badge bg-dark">{{ seat_id }}</span></td>
+                                <td>{{ seat.name if seat.booked else '-' }}</td>
+                                <td>{{ seat.owner if seat.booked else '-' }}</td>
+                                <td>
+                                    {% if seat.onboard %}
+                                    <span class="badge bg-success">Onboard</span>
+                                    {% elif seat.booked %}
+                                    <span class="badge bg-primary">Booked</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Available</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Compartment Security Footage</strong>
+                <button id="toggleStreamBtn" class="btn btn-sm btn-irctc" onclick="toggleStream()">Start Footage</button>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    Start footage only when scanning is not required. While stream is active, ESP32 scanner pauses automatically.
+                </p>
+                <div class="ratio ratio-4x3 border rounded bg-dark">
+                    <img id="streamFrame" src="" alt="ESP32 stream" style="object-fit: cover; display:none;" />
+                    <div id="streamPlaceholder" class="d-flex align-items-center justify-content-center text-white-50">
+                        Footage is stopped
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let streamOn = false;
+const streamUrl = "{{ esp32_stream_url }}";
+
+function toggleStream() {
+    const img = document.getElementById('streamFrame');
+    const placeholder = document.getElementById('streamPlaceholder');
+    const btn = document.getElementById('toggleStreamBtn');
+
+    if (!streamOn) {
+        img.src = streamUrl;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+        btn.textContent = 'Stop Footage';
+        btn.classList.remove('btn-irctc');
+        btn.classList.add('btn-danger');
+        streamOn = true;
+    } else {
+        img.src = '';
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+        btn.textContent = 'Start Footage';
+        btn.classList.remove('btn-danger');
+        btn.classList.add('btn-irctc');
+        streamOn = false;
+    }
+}
+</script>
+{% endblock %}

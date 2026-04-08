@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container text-center">
+    <h3 class="text-irctc mb-4">Your Digital Boarding Passes</h3>
+    
+    <div class="d-flex flex-column align-items-center gap-5">
+        {% for ticket in tickets %}
+        <div class="card shadow-lg" style="max-width: 400px; border-top: 8px solid var(--irctc-orange);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-primary">SEAT {{ ticket.id }}</span>
+                    <span class="small text-muted">COACH B1</span>
+                </div>
+                <h5 class="mb-3">{{ ticket.data.name }}</h5>
+                <div class="bg-white p-2 border mb-3">
+                    <img src="{{ url_for('static', filename='qrs/' + ticket.id + '.png') }}" class="img-fluid" style="width: 220px;">
+                </div>
+                <p class="x-small text-muted">Scan this code at the gate</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-5">
+        <button onclick="window.print()" class="btn btn-outline-dark">🖨️ Print All Tickets</button>
+        {% if session.get('role') == 'tte' %}
+        <a href="/tte/dashboard" class="btn btn-irctc ms-2">Back to TTE Dashboard</a>
+        {% else %}
+        <a href="/user/dashboard" class="btn btn-irctc ms-2">Back to Dashboard</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+:root {
+    --irctc-blue: #003366;
+    --irctc-orange: #f15b22;
+}
+
+body { background: #f4f7f9; }
+.text-irctc { color: var(--irctc-blue); font-weight: bold; }
+.btn-irctc { background: var(--irctc-orange); color: white; font-weight: bold; border: none; }
+.btn-irctc:hover { background: #d44d1d; color: white; }
+
+#coach-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 400px;
+    margin: auto;
+}
+
+/* Create the middle aisle */
+#coach-grid div:nth-child(4n+2) { margin-right: 30px; }
+
+.seat {
+    height: 50px;
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.seat.booked { background: #003366; color: white; border-color: #003366; cursor: not-allowed; }
+.seat.onboard { background: #28a745; color: white; border-color: #28a745; }
+.seat.selected { background: var(--irctc-orange); color: white; border-color: var(--irctc-orange); }
+.seat:hover:not(.booked) { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }

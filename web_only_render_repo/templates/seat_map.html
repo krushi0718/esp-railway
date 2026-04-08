@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-7 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3"><strong>Coach B1 Seat Layout</strong></div>
+            <div class="card-body">
+                <div id="coach-grid" class="mb-4">
+                    </div>
+                <div class="d-flex justify-content-center gap-3 small text-muted">
+                    <span><div class="seat d-inline-block" style="width:15px; height:15px"></div> Available</span>
+                    <span><div class="seat booked d-inline-block" style="width:15px; height:15px"></div> Booked</span>
+                    <span><div class="seat onboard d-inline-block" style="width:15px; height:15px"></div> Onboard</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div id="booking-panel" class="card shadow-lg border-0" style="display:none;">
+            <div class="card-body">
+                <h5 class="text-irctc border-bottom pb-2 mb-3">Passenger Information</h5>
+                <div id="passenger-forms"></div>
+                <button onclick="confirmBooking()" class="btn btn-irctc w-100 mt-3 py-3">CONFIRM & GENERATE QR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedSeats = [];
+
+async function refreshMap() {
+    const res = await fetch('/api/seats');
+    const data = await res.json();
+    const grid = document.getElementById('coach-grid');
+    grid.innerHTML = '';
+
+    Object.keys(data).forEach(id => {
+        const seat = data[id];
+        const div = document.createElement('div');
+        div.className = `seat ${seat.onboard ? 'onboard' : (seat.booked ? 'booked' : (selectedSeats.includes(id) ? 'selected' : ''))}`;
+        div.innerText = id;
+        
+        if(!seat.booked) {
+            div.onclick = () => {
+                if (selectedSeats.includes(id)) selectedSeats = selectedSeats.filter(s => s !== id);
+                else selectedSeats.push(id);
+                renderForms();
+                refreshMap();
+            };
+        }
+        grid.appendChild(div);
+    });
+}
+
+function renderForms() {
+    const container = document.getElementById('passenger-forms');
+    const panel = document.getElementById('booking-panel');
+    container.innerHTML = '';
+    
+    if(selectedSeats.length === 0) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+
+    selectedSeats.forEach(sid => {
+        container.innerHTML += `
+            <div class="mb-4 p-3 bg-light rounded border-start border-4 border-warning">
+                <h6 class="fw-bold small">PASSENGER FOR SEAT ${sid}</h6>
+                <input type="text" class="form-control mb-2 p-name" data-seat="${sid}" placeholder="Full Name" required>
+                <div class="row g-2">
+                    <div class="col-5"><input type="number" class="form-control p-age" placeholder="Age"></div>
+                    <div class="col-7">
+                        <select class="form-select p-gender">
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                            <option value="T">Transgender</option>
+                        </select>
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+
+async function confirmBooking() {
+    const passengers = [];
+    const names = document.querySelectorAll('.p-name');
+    const ages = document.querySelectorAll('.p-age');
+    const genders = document.querySelectorAll('.p-gender');
+
+    for(let i=0; i < names.length; i++) {
+        if(!names[i].value) return alert("Please fill all names!");
+        passengers.push({
+            seat_id: names[i].dataset.seat,
+            name: names[i].value,
+            age: ages[i].value,
+            gender: genders[i].value
+        });
+    }
+
+    const res = await fetch('/book', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ passengers })
+    });
+    const result = await res.json();
+    if (result.success) {
+        window.location.href = `/tickets/${result.seats}`;
+        return;
+    }
+
+    if (res.status === 401) {
+        alert(result.message || "Please login to continue booking.");
+        window.location.href = '/login';
+        return;
+    }
+
+    alert(result.message || "Booking failed. Please try again.");
+}
+
+refreshMap();
+setInterval(refreshMap, 5000); // Sync onboard status
+</script>
+{% endblock %}
